@@ -16,6 +16,7 @@ function Login(){
     const handleSubmit = async (e)=>{
         e.preventDefault();
         try{
+            console.log('Hey man data is',data);
             const res = await axios.post('http://localhost:8000/login', data);
             const { _id, userName } = res.data;
             sessionStorage.setItem('userId', _id);

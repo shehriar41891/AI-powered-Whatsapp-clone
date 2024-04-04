@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import PrivateRouting from './privateRouting';
 import Container from './container';
 import Login from './login';
+import Signup from './signup.'
 import './App.css';
 
 function App(){
@@ -12,6 +13,7 @@ function App(){
                 <Route path='/' element={<Container />} />
             </Route>
             <Route path='/login' element={<Login />} />
+            <Route path='/register' element={<Signup />} />
         </Routes>
     )
 }

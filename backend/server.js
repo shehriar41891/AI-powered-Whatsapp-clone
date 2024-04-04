@@ -5,12 +5,38 @@ const bcrypt = require('bcrypt');
 const connect = require('./database/db');
 const User = require('./models/user');
 const Message = require('./models/messages');
+const { PythonShell } = require('python-shell')
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 connect();
+
+//sending data to python shell from here
+async function preprocessData(inputdata){
+   try{
+      const pythonshell = new PythonShell('whatsapp_clone/prediction.py')
+
+      //send user input data
+      const data =JSON.stringify(inputdata)
+      pythonshell.send(data)
+
+      //recieve the data here
+      pythonshell.on('message',(message)=>{
+        console.log('The vectorized input data is ',message)
+      })
+
+      pythonshell.end((err)=>{
+        if (err){
+            console.log('There is an error',err)
+        }
+        console.log('Python Shell is closed')
+      })
+   }catch(err){
+      console.log('ERROR::: ',err)
+   }
+}
 
 app.get('/', (req, res)=>{
     res.send('hello from server');
@@ -38,8 +64,10 @@ app.post('/user', async(req, res)=>{
     }
 })
 
+
 app.post('/login', async(req, res)=>{
     try{
+        console.log('This route is hit by front end')
         const { email, password } = req.body;
         const user = await User.findOne({ email });
 
@@ -96,8 +124,9 @@ app.post('/save-message', async(req, res)=>{
 
         const message = new Message({ participants: [senderId, receiverId], senderId, receiverId, type: "text", content });
         const result = await message.save();
-
+        
         res.send(result);
+        console.log('The content of message send is',result.content)
     }catch(err){
         res.status(500).send(err);
         console.log(err.message);
@@ -130,6 +159,8 @@ app.post('/get-messages', async(req, res)=>{
         const messages = await Message.find({
             participants: { $all: [userId, otherUserId] }
         }).sort({ createdAt: -1 }).limit(100);
+
+        preprocessData(messages)
 
         res.send(messages);
     }catch(err){
