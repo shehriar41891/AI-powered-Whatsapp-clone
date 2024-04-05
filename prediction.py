@@ -18,10 +18,15 @@ import json
 import sys
 
 ##read the data here 
-data = pd.read_csv('text.csv')
+data = pd.read_csv('../text.csv')
 
 ## user input will be recived here
-user_text = json.loads(sys.stdin.readline().strip())
+input_text = json.loads(sys.stdin.readline().strip())
+
+content = input_text['content']
+content = str(content)
+
+print('The input_text here is ',content)
 
 ##preprocessing function
 pattern = r'[^a-zA-Z0-9\s]' #anything inside this will be removed from the text
@@ -55,10 +60,12 @@ def CountVectorize(data):
 ## first 5000 data because we have too many entries in the dataset
 data = data[:50000]
 
+data['text'] = data['text'].apply(preprocess)
+
 trf = CountVectorize(data['text'])
 
 ##the user input we expect to get
-preprocessed_text = preprocess(input_text)
+preprocessed_text = preprocess(content)
 ##vectorize the user input
 vectorized_text = CountVectorize([preprocessed_text])
 
@@ -76,3 +83,5 @@ if trf.shape[1] != vectorized_text.shape[1]:
 X = vectors_adjusted
 y = data['label']
 X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2)
+
+print('This is the content at the end',content)
