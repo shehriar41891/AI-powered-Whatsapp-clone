@@ -16,7 +16,7 @@ connect();
 //sending data to python shell from here
 async function preprocessData(inputdata){
    try{
-      const pythonshell = new PythonShell('whatsapp_clone/prediction.py')
+      const pythonshell = new PythonShell('../prediction.py')
 
       //send user input data
       const data =JSON.stringify(inputdata)
@@ -154,20 +154,26 @@ app.post('/save-media', async(req, res)=>{
 app.post('/get-messages', async(req, res)=>{
     try{
         const { userId, otherUserId } = req.body;
-        if(userId === '' || otherUserId === '' ) return res.status(400).send('Required paramters are not sent');
+        if(userId === '' || otherUserId === '' ) return res.status(400).send('Required parameters are not sent');
 
         const messages = await Message.find({
             participants: { $all: [userId, otherUserId] }
         }).sort({ createdAt: -1 }).limit(100);
 
-        preprocessData(messages)
+        // Ensure messages are sorted in descending order of createdAt
+        messages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        // Get the latest message
+        const latestMessage = messages.length > 0 ? messages[0] : null;
+
+        preprocessData(latestMessage); // Assuming preprocessData is a function to process a single message
 
         res.send(messages);
-    }catch(err){
+    } catch(err) {
         res.status(500).send(err);
         console.log(err.message);
     }
-})
+});
 
 
 app.listen(8000, ()=>{
