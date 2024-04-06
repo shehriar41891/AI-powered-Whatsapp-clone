@@ -16,17 +16,20 @@ from sklearn.naive_bayes import GaussianNB,MultinomialNB
 from sklearn.metrics import accuracy_score
 import json
 import sys
+import joblib 
 
 ##read the data here 
-data = pd.read_csv('../text.csv')
+# data = pd.read_csv('../text.csv')
 
 ## user input will be recived here
-input_text = json.loads(sys.stdin.readline().strip())
+# input_text = json.loads(sys.stdin.readline().strip())
 
-content = input_text['content']
-content = str(content)
+content =  "As the shadows lengthen and strange noises echo through the house, every creak and whisper sends shivers down my spine, and I can't help but fear what lurks in the darkness."
 
-print('The input_text here is ',content)
+# content = input_text['content']
+# content = str(content)
+
+# print('The input_text here is ',content)
 
 ##preprocessing function
 pattern = r'[^a-zA-Z0-9\s]' #anything inside this will be removed from the text
@@ -49,39 +52,15 @@ def preprocess(text):
 
 ##count vectorizer function here
 
-def CountVectorize(data):
-    cv = CountVectorizer(max_features=5000) #that means we will select the most frequent 5000 words
-    cv.fit(data)
-    trf = cv.transform(data)
-    trf = trf.toarray()
-    
-    return trf
-
-## first 5000 data because we have too many entries in the dataset
-data = data[:50000]
-
-data['text'] = data['text'].apply(preprocess)
-
-trf = CountVectorize(data['text'])
-
 ##the user input we expect to get
 preprocessed_text = preprocess(content)
 ##vectorize the user input
-vectorized_text = CountVectorize([preprocessed_text])
+cv = joblib.load('countvectorizer2.pkl')
 
-##check if the vectors shapes are equal
-if trf.shape[1] != vectorized_text.shape[1]:
-    print("Number of features in user_vector and vectors don't match. Adjusting...")
+model = joblib.load('sentiment_analysis2.pkl')
 
-    cv_adjusted = CountVectorizer(max_features=trf.shape[1], stop_words='english')
-    vectors_adjusted = cv_adjusted.fit_transform(data['text']).toarray()
+vectorized_text = cv.transform([preprocessed_text])
 
-    user_vector = cv_adjusted.transform([preprocessed_text]).toarray()
-    
+print(vectorized_text,'\n')
 
-##split the data into train/test split
-X = vectors_adjusted
-y = data['label']
-X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2)
-
-print('This is the content at the end',content)
+print('The answer is ',model.predict(vectorized_text))

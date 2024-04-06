@@ -6,12 +6,15 @@ const connect = require('./database/db');
 const User = require('./models/user');
 const Message = require('./models/messages');
 const { PythonShell } = require('python-shell')
+// const joblib  = require('jo')
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 connect();
+
+const arr = []
 
 //sending data to python shell from here
 async function preprocessData(inputdata){
@@ -25,6 +28,7 @@ async function preprocessData(inputdata){
       //recieve the data here
       pythonshell.on('message',(message)=>{
         console.log('The vectorized input data is ',message)
+        arr[0] = message
       })
 
       pythonshell.end((err)=>{
@@ -167,6 +171,8 @@ app.post('/get-messages', async(req, res)=>{
         const latestMessage = messages.length > 0 ? messages[0] : null;
 
         preprocessData(latestMessage); // Assuming preprocessData is a function to process a single message
+
+        console.log(arr)
 
         res.send(messages);
     } catch(err) {
